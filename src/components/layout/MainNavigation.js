@@ -12,7 +12,7 @@ function MainNavigation() {
             <NavLink to="/quotes">All Quotes</NavLink>
           </li>
           <li>
-            <NavLink to="/quotes/new_quote">Add a quote</NavLink>
+            <NavLink to="/new_quote">Add a quote</NavLink>
           </li>
         </ul>
       </nav>

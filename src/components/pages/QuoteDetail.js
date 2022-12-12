@@ -1,59 +1,44 @@
-import React, { Fragment } from "react";
-import { Link, useParams, Routes, Route } from "react-router-dom";
-import Comments from "../comments/Comments";
+// Outlet version below: https://ui.dev/react-router-nested-routes
+import React, { Fragment, useEffect } from "react";
+import { useParams, Outlet } from "react-router-dom";
+import { getSingleQuote } from "../lib/api";
 import HighlightedQuote from "../quotes/HighlightedQuote";
-
-const DUMMY_DATA = [
-  { id: "q1", author: "John", text: "Learning is fun" },
-  { id: "q2", author: "Zhang", text: "Learning is NOT fun" },
-  { id: "q3", author: "Zha", text: "Learning is NOT fun at all!" },
-];
+import LoadingSpinner from "../UI/LoadingSpinner";
+import useHttp from "../hooks/use-http";
 
 function QuoteDetail() {
   const parameter = useParams();
-  const curQuote = DUMMY_DATA.find((quote) => quote.id === parameter.quoteID);
+  const { quoteID } = parameter;
 
-  if (!curQuote) {
+  //prettier-ignore
+  const { sendRequest, status, data: loadedQuote, error } = useHttp(getSingleQuote, true);
+
+  useEffect(() => {
+    sendRequest(quoteID);
+  }, [sendRequest, quoteID]);
+
+  if (status === "pending") {
+    return (
+      <div className="centered">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="centered">{error}</p>;
+  }
+
+  if (!loadedQuote.text) {
     return <p>No quote found!</p>;
   }
 
   return (
     <Fragment>
-      <HighlightedQuote text={curQuote.text} author={curQuote.author} />
-      <Routes>
-        {/* Use nested Route to conditionally render Link, to avoid complex state management */}
-        <Route
-          path="/"
-          element={
-            <div className="centered">
-              <Link to="comments">Load Comments</Link>
-            </div>
-          }
-        ></Route>
-        <Route path="comments" element={<Comments />}></Route>
-      </Routes>
+      <HighlightedQuote text={loadedQuote.text} author={loadedQuote.author} />
+      <Outlet />
     </Fragment>
   );
 }
 
 export default QuoteDetail;
-
-// Outlet version below: https://ui.dev/react-router-nested-routes
-
-// import React, { Fragment } from "react";
-// import { useParams, Outlet } from "react-router-dom";
-
-// function QuoteDetail() {
-//   const parameter = useParams();
-
-//   return (
-//     <Fragment>
-//       <h1>Quote Detail Page</h1>
-//       <p>{parameter.quoteID}</p>
-//       {/* Outle will render "/quotes/:quoteID/comments" */}
-//       <Outlet />
-//     </Fragment>
-//   );
-// }
-
-// export default QuoteDetail;

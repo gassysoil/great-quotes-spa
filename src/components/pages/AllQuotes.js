@@ -1,31 +1,35 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import useHttp from "../hooks/use-http";
+import { getAllQuotes } from "../lib/api";
 import QuoteList from "../quotes/QuoteList";
-
-const DUMMY_DATA = [
-  { id: "q1", author: "John", text: "Learning is fun" },
-  { id: "q2", author: "Zhang", text: "Learning is NOT fun" },
-  { id: "q3", author: "Zha", text: "Learning is NOT fun at all!" },
-];
+import LoadingSpinner from "../UI/LoadingSpinner";
+import NoQuotesFound from "../quotes/NoQuotesFound";
 
 function AllQuotes() {
-  return (
-    // <section>
-    //   <h1>All Quotes Page</h1>
-    //   <ul>
-    //     <li>
-    //       <Link to="quotes/q1">q1</Link>
-    //     </li>
-    //     <li>
-    //       <Link to="quotes/q2">q2</Link>
-    //     </li>
-    //     <li>
-    //       <Link to="quotes/q3">q3</Link>
-    //     </li>
-    //   </ul>
-    // </section>
-    <QuoteList quotes={DUMMY_DATA}></QuoteList>
-  );
+  //prettier-ignore
+  const { sendRequest, status, data: loadedQuotes, error } = useHttp(getAllQuotes, true);
+
+  useEffect(() => {
+    sendRequest();
+  }, [sendRequest]);
+
+  if (status === "pending") {
+    return (
+      <div className="centered">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="centered focused">{error}</p>;
+  }
+
+  if (status === "completed" && (!loadedQuotes || loadedQuotes.length === 0)) {
+    return <NoQuotesFound />;
+  }
+
+  return <QuoteList quotes={loadedQuotes}></QuoteList>;
 }
 
 export default AllQuotes;
